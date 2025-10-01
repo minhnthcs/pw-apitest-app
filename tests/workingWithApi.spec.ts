@@ -10,11 +10,26 @@ test.beforeEach(async ({ page }) => {
     });
     console.log("Intercepted:", route.request().url());
   });
+
+  await page.route("**/api/articles*", async (route) => {
+    const response = await route.fetch();
+    const responseBody = await response.json();
+    responseBody.articles[0].title = "This is a test title";
+    responseBody.articles[0].description = "This is a test description";
+
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(responseBody),
+    });
+  });
+
   page.on("request", (req) => console.log("Outgoing:", req.url()));
   await page.goto("https://conduit.bondaracademy.com/");
 });
 
 test("has title", async ({ page }) => {
+  await page.waitForTimeout(1000);
   // trigger the API call - this very important to make sure the api call to be mocked
   await page.waitForSelector(".tag-list");
 
@@ -24,6 +39,13 @@ test("has title", async ({ page }) => {
   }
   // Expect a title "to contain" a substring.
   await expect(page.locator(".navbar-brand")).toHaveText("conduit");
+
+  await expect(page.locator("app-article-list h1").first()).toContainText(
+    "This is a test title"
+  );
+  await expect(page.locator("app-article-list p").first()).toContainText(
+    "This is a test description"
+  );
 });
 
 /**
