@@ -1,7 +1,16 @@
 import { test, expect } from "@playwright/test";
 import fs from "fs";
-const { token } = JSON.parse(fs.readFileSync("./.auth/token.json", "utf-8"));
+import path from "path";
 
+const tokenPath = path.resolve(__dirname, "../.auth/token.json");
+let token = "";
+
+if (fs.existsSync(tokenPath)) {
+  const fileContent = fs.readFileSync(tokenPath, "utf-8");
+  if (fileContent.trim()) {
+    token = JSON.parse(fileContent).token;
+  }
+}
 import tags from "../test-data/tags.json";
 
 test.beforeEach(async ({ page }) => {
@@ -54,8 +63,6 @@ test("has title", async ({ page }) => {
 });
 
 test("delete articles", async ({ request, page }) => {
-  console.log("token", token);
-
   const articleResponse = await request.post(
     "https://conduit-api.bondaracademy.com/api/articles/",
     {
@@ -78,6 +85,7 @@ test("delete articles", async ({ request, page }) => {
 
   await page.waitForTimeout(1000);
   await page.getByText("Global Feed").click();
+  await page.waitForSelector("app-article-list h1");
   expect(await page.locator("app-article-list h1").first()).toContainText(
     "This is my test Mason"
   );
