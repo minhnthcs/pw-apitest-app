@@ -2,15 +2,15 @@ import { test, expect } from "@playwright/test";
 import fs from "fs";
 import path from "path";
 
-const tokenPath = path.resolve(__dirname, "../.auth/token.json");
-let token = "";
+// const tokenPath = path.resolve(__dirname, "../.auth/token.json");
+// let token = "";
 
-if (fs.existsSync(tokenPath)) {
-  const fileContent = fs.readFileSync(tokenPath, "utf-8");
-  if (fileContent.trim()) {
-    token = JSON.parse(fileContent).token;
-  }
-}
+// if (fs.existsSync(tokenPath)) {
+//   const fileContent = fs.readFileSync(tokenPath, "utf-8");
+//   if (fileContent.trim()) {
+//     token = JSON.parse(fileContent).token;
+//   }
+// }
 import tags from "../test-data/tags.json";
 
 test.beforeEach(async ({ page }) => {
@@ -74,9 +74,6 @@ test("delete articles", async ({ request, page }) => {
           tagList: [],
         },
       },
-      headers: {
-        Authorization: `Token ${token}`,
-      },
     }
   );
 
@@ -91,12 +88,7 @@ test("delete articles", async ({ request, page }) => {
   );
 
   const deleteResponse = await request.delete(
-    `https://conduit-api.bondaracademy.com/api/articles/${articleSlug}`,
-    {
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    }
+    `https://conduit-api.bondaracademy.com/api/articles/${articleSlug}`
   );
   expect(deleteResponse.status()).toEqual(204);
   await page.getByText("Global Feed").click();

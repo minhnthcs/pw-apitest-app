@@ -31,6 +31,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
+    extraHTTPHeaders: {
+      Authorization: `Token ${process.env.ACCESS_TOKEN}`,
+    },
   },
 
   /* Configure projects for major browsers */
@@ -40,35 +43,32 @@ export default defineConfig({
       testMatch: "auth.setup.ts", // Run only once
     },
     {
-      name: "chromium",
+      name: "articleSetup",
+      testMatch: "newArticle.setup.ts",
+      dependencies: ["setup"],
+      teardown: "articleCleanUp",
+    },
+    {
+      name: "articleCleanUp",
+      testMatch: "articleCleanup.setup.ts",
+    },
+    {
+      name: "likeCounter",
+      testMatch: "likeCounter.spec.ts",
       use: {
         ...devices["Desktop Chrome"],
         storageState: path.resolve(__dirname, "./.auth/user.json"),
       },
+      dependencies: ["articleSetup"],
+    },
+    {
+      name: "regression",
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: path.resolve(__dirname, "./.auth/user.json"),
+      },
+      testMatch: "workingWithApi.spec.ts",
       dependencies: ["setup"], // 🔥 Ensures setup runs before
     },
-    {
-      name: "firefox",
-      use: {
-        ...devices["Desktop Firefox"],
-        storageState: path.resolve(__dirname, "./.auth/user.json"),
-      },
-      dependencies: ["setup"],
-    },
-    {
-      name: "webkit",
-      use: {
-        ...devices["Desktop Safari"],
-        storageState: path.resolve(__dirname, "./.auth/user.json"),
-      },
-      dependencies: ["setup"],
-    },
   ],
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
 });

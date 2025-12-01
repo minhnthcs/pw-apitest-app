@@ -43,6 +43,5 @@ setup("authentication", async () => {
   await context.storageState({ path: userFile });
   await browser.close();
   await apiContext.dispose();
-
-  console.log("✅ Authentication state and token saved.");
+  process.env["ACCESS_TOKEN"] = accessToken;
 });
